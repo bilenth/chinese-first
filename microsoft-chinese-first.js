@@ -23,10 +23,6 @@
     const FALLBACK_LANG = '/en-us/';
     const EXCLUDED_PATHS = ['/answers/'];
     const SESSION_KEY = 'msdocs_auto_switched_session';
-    const MAX_SESSION_RECORDS = 200;          // 防止标签页长期不关闭导致膨胀
-    const DRAG_THRESHOLD = 5;                 // 像素
-    const CLICK_MAX_DURATION = 200;           // 毫秒
-
     const LANG_REGEX = /^\/[a-z]{2}(?:-[a-z]{2})?\//i;
 
     // ==================== 工具函数 ====================
@@ -38,7 +34,7 @@
         return new URL(url).pathname.replace(LANG_REGEX, '/');
     }
 
-    /** 从 sessionStorage 读取 Set */
+    /** 从 sessionStorage 读取已切换文档集合 */
     function loadSwitchedSet() {
         try {
             const raw = sessionStorage.getItem(SESSION_KEY);
@@ -48,15 +44,9 @@
         }
     }
 
-    /** 写入 sessionStorage，超限自动清理最旧的 */
+    /** 保存已切换文档集合到 sessionStorage */
     function saveSwitchedSet(set) {
-        if (set.size > MAX_SESSION_RECORDS) {
-            const arr = [...set];
-            const trimmed = arr.slice(-MAX_SESSION_RECORDS);
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(trimmed));
-        } else {
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify([...set]));
-        }
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify([...set]));
     }
 
     /** 重定向到指定语言版本 */
@@ -202,7 +192,7 @@
 
     /** 判断是否为点击（轻触+短时） */
     function checkClick(endY, duration) {
-        return Math.abs(endY - startY) <= DRAG_THRESHOLD && duration < CLICK_MAX_DURATION;
+        return Math.abs(endY - startY) <= 5 && duration < 200;
     }
 
     /** 启动拖拽 */
